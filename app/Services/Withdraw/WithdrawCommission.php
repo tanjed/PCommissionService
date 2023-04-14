@@ -2,7 +2,7 @@
 
 namespace App\Services\Withdraw;
 
-use App\Services\CommissionCalculatorInterface;
+use App\Contracts\CommissionCalculatorInterface;
 
 class WithdrawCommission implements CommissionCalculatorInterface
 {

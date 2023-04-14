@@ -10,7 +10,8 @@ class CSVParser
 {
     const INVALID_FILE_ERROR_TEXT = 'Invalid file input';
     const PROCESSING_ERROR_TEXT = 'Unable to process';
-    private $filePath, $parsedData, $validEntryColumnCount, $validUserTypes, $validOperationTypes, $dateFormat;
+    private $filePath, $parsedData, $validCSVColumns,
+        $validCSVColumnCount, $validUserTypes, $validOperationTypes, $dateFormat;
 
     public function __construct()
     {
@@ -23,7 +24,7 @@ class CSVParser
         $this->dateFormat = config('commission.date_format');
     }
 
-    public function setFilePath(string $filePath) : CSVParser
+    public function setFilePath(string $filePath) : self
     {
         if (!is_file($filePath)) throw new \Exception(self::INVALID_FILE_ERROR_TEXT);
 
@@ -31,7 +32,7 @@ class CSVParser
         return $this;
     }
 
-    public function parse()
+    public function parse(): array
     {
         if (empty($this->filePath)) throw new \Exception(self::INVALID_FILE_ERROR_TEXT);
 

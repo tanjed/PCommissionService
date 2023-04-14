@@ -1,9 +1,9 @@
 <?php
 
 return [
-    'commission_rules' => [
+    'rules' => [
         'deposit' => [
-            'default' => 0.3,
+            'default' => 0.03,
         ],
         'withdraw' => [
             'default' => 0.3,

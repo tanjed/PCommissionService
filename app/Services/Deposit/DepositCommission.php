@@ -2,13 +2,23 @@
 
 namespace App\Services\Deposit;
 
-use App\Services\CommissionCalculatorInterface;
+use App\Abstracts\AbstractCommissionCalculator;
 
-class DepositCommission implements CommissionCalculatorInterface
+class DepositCommission extends AbstractCommissionCalculator
 {
 
-    public function calculate()
+    public function calculate() : array
     {
-        // TODO: Implement calculate() method.
+        $this->calculateDefaultDepositCommissionRate();
+        return $this->output;
+    }
+
+    private function calculateDefaultDepositCommissionRate() : void
+    {
+        $commissionRate = config('commission.rules.deposit.default');
+
+        foreach ($this->transactions as $index => $transaction) {
+            $this->output[$index] = $this->getPercentage($transaction['amount'], $commissionRate);
+        }
     }
 }
