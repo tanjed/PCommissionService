@@ -11,8 +11,6 @@ class CurrencyConverter
         $this->defaultCurrency = config('commission.base_currency');
         $list = $this->getCurrencyList();
         if (isset($list['rates'])) $this->rates = $list['rates'];
-        $this->rates['USD'] = 1.1497;
-        $this->rates['JPY'] = 129.53;
     }
 
     private function getCurrencyList()
