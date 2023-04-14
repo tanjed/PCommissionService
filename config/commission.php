@@ -8,6 +8,10 @@ return [
         'withdraw' => [
             'default' => 0.3,
             'business' => 0.5,
+            'weekly_discount' => [
+                'maximum_free_withdraw' => 3,
+                'maximum_free_amount' => 1000
+            ],
         ]
     ],
     'csv_columns' => [
@@ -27,4 +31,9 @@ return [
         'withdraw',
     ],
     'date_format' => 'Y-m-d',
+    'currency_exchange_base_url' => 'https://developers.paysera.com/tasks/api/currency-exchange-rates',
+    'base_currency' => 'EUR',
+    'non_decimal_currencies' => [
+        'JPY' => 'JAPANESE YEN'
+    ]
 ];

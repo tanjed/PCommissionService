@@ -3,19 +3,29 @@
 namespace App\Modules;
 
 use App\Contracts\CommissionCalculatorInterface;
-use App\Services\Deposit\DepositCommission;
+use App\Services\Commission\DepositCommission;
+use App\Services\Commission\WithdrawCommission;
 
 class CommissionCalculator implements CommissionCalculatorInterface
 {
+    const USER_TYPE_PRIVATE = 'private';
+    const USER_TYPE_BUSINESS = 'business';
+    const OPERATION_TYPE_WITHDRAW = 'withdraw';
+    const OPERATION_TYPE_DEPOSIT = 'deposit';
     private
         $depositCommission,
+        $withdrawCommission,
         $transactions = [],
         $deposits = [],
-        $withdraws = [];
+        $withdraws = [],
+        $output = [],
+        $nonDecimalCurrencies = [];
 
-    public function __construct(DepositCommission $depositCommission)
+    public function __construct(DepositCommission $depositCommission, WithdrawCommission $withdrawCommission)
     {
         $this->depositCommission = $depositCommission;
+        $this->withdrawCommission = $withdrawCommission;
+        $this->nonDecimalCurrencies = config('commission.non_decimal_currencies');
     }
 
     public function setTransactions(array $transactions) : self
@@ -26,23 +36,46 @@ class CommissionCalculator implements CommissionCalculatorInterface
 
     public function calculate()
     {
+        $totalTransactions = count($this->transactions);
         $this->segregateOperationTypes();
 
         $depositCommissions = $this->depositCommission
             ->setTransactions($this->deposits)
             ->calculate();
 
+        $withdrawCommissions = $this->withdrawCommission
+            ->setTransactions($this->withdraws)
+            ->calculate();
+
+        for ($i = 0; $i < $totalTransactions; $i++) {
+            $commission = 0.00;
+            if (isset($withdrawCommissions[$i]))
+                $commission = $this->getRoundedDecimal($withdrawCommissions[$i]);
+
+            if (isset($depositCommissions[$i]))
+                $commission = $this->getRoundedDecimal($depositCommissions[$i]);
+
+            $this->output[$i] = $commission;
+            echo $commission;
+            echo PHP_EOL;
+        }
+    }
+
+    private function getRoundedDecimal($commission, $decimalPlaces = 2) : string
+    {
+        if (isset($this->nonDecimalCurrencies[$commission['currency']])) return ceil($commission['amount']);
+        return number_format(ceil($commission['amount'] * 100) / 100, $decimalPlaces);
     }
 
     private function segregateOperationTypes() : void
     {
         foreach ($this->transactions as $index => $transaction) {
             switch (strtolower($transaction['operation_type'])) {
-                case 'deposit' :
+                case self::OPERATION_TYPE_DEPOSIT :
                     $this->deposits[$index] = $transaction;
                     break;
 
-                case 'withdraw' :
+                case self::OPERATION_TYPE_WITHDRAW :
                     $this->withdraws[$index] = $transaction;
                     break;
 
