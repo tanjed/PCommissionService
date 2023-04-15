@@ -59,7 +59,7 @@ class CommissionServiceTest extends TestCase
                     ['date' => '2016-02-15', 'user_id' => '1', 'user_type' => 'private', 'operation_type' => 'withdraw', 'amount' => '300.00', 'currency' => 'EUR'],
                     ['date' => '2016-02-19', 'user_id' => '5', 'user_type' => 'private', 'operation_type' => 'withdraw', 'amount' => '3000000', 'currency' => 'JPY'],
                 ],
-                'output' => ["0.60", "3.00", "0.00", "0.06", "1.50", "0", "0.69", "0.30", "0.30", "3.00", "0.00", "0.00", "8608"],
+                'output' => ['0.60', '3.00', '0.00', '0.06', '1.50', '0', '0.69', '0.30', '0.30', '3.00', '0.00', '0.00', '8608'],
                 'conversion_rate' => [
                     'USD' =>  1.129031,
                     'JPY' => 130.869977
@@ -83,7 +83,7 @@ class CommissionServiceTest extends TestCase
         ];
     }
 
-    public function testParserSuccessCases(): void
+    public function test_parser_success_cases(): void
     {
         $csvParser = new CSVParser();
         $csvData = $csvParser->setFilePath(storage_path('app/public/sample.csv'))->parse();
@@ -91,7 +91,7 @@ class CommissionServiceTest extends TestCase
         $this->assertIsArray($csvData);
     }
 
-    public function testParserInvalidFilePath()
+    public function test_parser_invalid_file_path()
     {
         $this->expectException(\Exception::class);
         $this->expectExceptionMessage('Invalid file input');
@@ -101,10 +101,11 @@ class CommissionServiceTest extends TestCase
         $csvParser->parse();
     }
 
-    public function testParserReturnSelf()
+    public function test_parser_return_self()
     {
         $csvParser = new CSVParser();
         $csvData = $csvParser->setFilePath(storage_path('app/public/sample.csv'));
+
         $this->assertEquals($csvParser, $csvData);
     }
 }

@@ -3,7 +3,6 @@
 namespace App\Services\Parser;
 
 use DateTime;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Log;
 
 class CSVParser
@@ -35,11 +34,12 @@ class CSVParser
     public function parse(): array
     {
         if (empty($this->filePath)) throw new \Exception(self::INVALID_FILE_ERROR_TEXT);
-
+        $index = 0;
         try {
             if (($handle = fopen($this->filePath, 'r')) !== false) {
                 while (($data = fgetcsv($handle)) !== false) {
-                    if ($this->isValidEntry($data)) $this->parsedData[] = $this->mapEntry($data);
+                    if ($this->isValidEntry($data)) $this->parsedData[$index] = $this->mapEntry($data);
+                    $index++;
                 }
                 fclose($handle);
             }

@@ -7,23 +7,25 @@ use Illuminate\Support\Facades\Log;
 
 abstract class AbstractCommissionCalculator implements CommissionCalculatorInterface
 {
-    protected $transactions = [], $privateTransactions = [], $businessTransactions = [], $output = [];
+    protected $output = [],
+        $transactions = [],
+        $privateTransactions = [],
+        $businessTransactions = [];
     public function setTransactions(array $transactions): self
     {
         $this->transactions = $transactions;
         return $this;
     }
 
-    protected function getPercentage($amount, $rate)
+    protected function getPercentage($amount, $rate) : float
     {
        return ($amount * $rate) / 100;
     }
 
-    protected function getCommissionRate($operationType, $userType)
+    protected function getCommissionRate($operationType, $userType) : float
     {
         $commissionRules = config('commission.rules');
-        if (isset($commissionRules[$operationType][$userType])) return $commissionRules[$operationType][$userType];
-        return $commissionRules[$operationType]['default'];
+        return $commissionRules[$operationType][$userType] ?? $commissionRules[$operationType]['default'];
     }
 
     protected function calculateDefaultDepositCommissionRate() : void
@@ -36,11 +38,11 @@ abstract class AbstractCommissionCalculator implements CommissionCalculatorInter
         }
     }
 
-    protected function mapCommissionOutput($commission, $transaction)
+    protected function mapCommissionOutput($commission, $transaction) : array
     {
         return [
-            'amount' => $commission,
-            'currency' => $transaction['currency']
+            'amount'    => $commission,
+            'currency'  => $transaction['currency']
         ];
     }
 }

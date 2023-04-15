@@ -14,13 +14,13 @@ class CurrencyConverter
         $this->rates = $exchangeRateDetector->getExchangeRates();
     }
 
-    private function getExchangeRate($toCurrency)
+    private function getExchangeRate(string $toCurrency)
     {
         $toCurrency = strtoupper($toCurrency);
         return $this->rates[$toCurrency] ?? null;
     }
 
-    public function convertCurrency($amount, $fromCurrency, $toCurrency) : float
+    public function convertCurrency(float $amount, string $fromCurrency, string $toCurrency) : float
     {
         if ($fromCurrency == $toCurrency)
             return $amount;

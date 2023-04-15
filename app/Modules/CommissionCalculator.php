@@ -12,8 +12,8 @@ class CommissionCalculator implements CommissionCalculatorInterface
     const USER_TYPE_BUSINESS = 'business';
     const OPERATION_TYPE_WITHDRAW = 'withdraw';
     const OPERATION_TYPE_DEPOSIT = 'deposit';
-    private
-        $depositCommission,
+    const ENTRY_UNPROCESSABLE_TEXT = 'Unprocessable';
+    private $depositCommission,
         $withdrawCommission,
         $transactions = [],
         $deposits = [],
@@ -48,12 +48,13 @@ class CommissionCalculator implements CommissionCalculatorInterface
             ->calculate();
 
         for ($i = 0; $i < $totalTransactions; $i++) {
-            $commission = 0.00;
+
             if (isset($withdrawCommissions[$i]))
                 $commission = $this->getRoundedDecimal($withdrawCommissions[$i]);
-
-            if (isset($depositCommissions[$i]))
+            elseif (isset($depositCommissions[$i]))
                 $commission = $this->getRoundedDecimal($depositCommissions[$i]);
+            else
+                $commission = self::ENTRY_UNPROCESSABLE_TEXT;
 
             $this->output[$i] = $commission;
         }
@@ -61,7 +62,7 @@ class CommissionCalculator implements CommissionCalculatorInterface
         return $this->output;
     }
 
-    public function showOutput()
+    public function showOutput() : void
     {
         foreach ($this->output as $commission) {
             echo $commission;
@@ -72,6 +73,7 @@ class CommissionCalculator implements CommissionCalculatorInterface
     private function getRoundedDecimal($commission, $decimalPlaces = 2) : string
     {
         if (isset($this->nonDecimalCurrencies[$commission['currency']])) return ceil($commission['amount']);
+
         return number_format(ceil($commission['amount'] * 100) / 100, $decimalPlaces);
     }
 

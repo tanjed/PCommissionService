@@ -15,7 +15,7 @@ class WithdrawCommission extends AbstractCommissionCalculator
         $this->currencyConverter = $currencyConverter;
     }
 
-    public function calculate()
+    public function calculate() : array
     {
         $this->segregateUserTypes();
         $this->calculateBusinessTransactionsCommission();
@@ -50,12 +50,14 @@ class WithdrawCommission extends AbstractCommissionCalculator
                    $commission = 0.00;
                    $transactionsThisWeek++;
                    $weeklyTransactionAmountInBaseCurrency += $this->currencyConverter->convertCurrency($transaction['amount'], $transaction['currency'], $baseCurrency);
+
                    if ($weeklyTransactionAmountInBaseCurrency > $maximumFreeAmount) {
                        $commission = $this->getPercentage(($weeklyTransactionAmountInBaseCurrency - $maximumFreeAmount), $commissionRate);
                        $weeklyTransactionAmountInBaseCurrency = $maximumFreeAmount;
                    } elseif ($transactionsThisWeek > $maximumFreeWithdraw) {
                        $commission = $this->getPercentage($weeklyTransactionAmountInBaseCurrency, $commissionRate);
                    }
+
                    $commission = $this->currencyConverter->convertCurrency($commission, $baseCurrency, $transaction['currency']);
                    $this->output[$transaction['index']] = $this->mapCommissionOutput($commission, $transaction);
                }
@@ -81,7 +83,7 @@ class WithdrawCommission extends AbstractCommissionCalculator
         }
     }
 
-    private function segregateUserWiseWeeklyTransactions($transactions)
+    private function segregateUserWiseWeeklyTransactions($transactions) : array
     {
         $segregatedTransactions = [];
 
