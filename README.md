@@ -1,66 +1,91 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# PCommissionService
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+`PCommissionService` is a simple Laravel command that automate the commission calculations from a given CSV. 
 
-## About Laravel
+# Requirements
+- PHP 8.1 and above
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+# Installation
+Follow the steps to setup PCommissionService :
+- `git clone https://github.com/tanjed/PCommissionService.git`
+- `cd PCommissionService`
+- `composer install`
+- `cp .env.testing .env`
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+# Usage
+Run `php artisan calculate:commission {csv_full_path}`
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+> **_NOTE :_**  It is important to provide the full CSV path to prevent any kinds of error. <br>
+> **Example** : `php artisan calculate:commission storage/app/public/sample.csv`
 
-## Learning Laravel
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+# Test
+Run `php artisan test`
+> **_NOTE :_**  `CommissionServiceTest` has dedicated data I/O and config inside it. Any change in the config file won't have any effect.
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 2000 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+# Functionalities
+A Laravel command named `CalculateCommissionCommand` is the booting point of the whole process.
+It takes the path of the CSV as an argument and start the calculation process.
 
-## Laravel Sponsors
+There are 2 major components of the process.
+- `CSVParser`
+- `CommissionCalculator`
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+### CSVParser
+It takes the CSV file path then parse and filter data and return a clean dataset to work with.
+~~~php
+$transactions = (new CSVParser())
+    ->setFilePath('storage/app/public/sample.csv')
+    ->parse();
+~~~
 
-### Premium Partners
+### CommissionCalculator
+It takes the sanitized CSV data as an array and calculates the commission fees for different operation type.
+`CommissionCalculator` has split into 2 additional class for operational ease. These are :
+- `DepositCommission`
+- `WithdrawCommission`
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[OP.GG](https://op.gg)**
-- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
-- **[Lendio](https://lendio.com)**
+After segregating the transactions by operation type corresponding modules are being called for further processing.
+Both class extends `AbstractCommissionCalculator` which implements `CommissionCalculatorInterface` (a common interface for commission calculation).
 
-## Contributing
+~~~php
+$commissionCalculator = new CommissionCalculator();
+$commissions = $commissionCalculator->setTransactions($transactions)->calculate();
+$commissionCalculator->showOutput(); //Print Output if necessary
+~~~
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### DepositCommission
+This class is responsible for processing `Deposit` type transactions. It takes the deposit transactions
+as input and calculate the commission fee based on the default config settings.
+~~~php
+  $depositCommissions = (new DepositCommission())
+            ->setTransactions($deposits)
+            ->calculate();
+~~~
 
-## Code of Conduct
+### WithdrawCommission 
+This class is responsible for processing `Withdraw` type transactions. It takes the deposit transactions
+as input and calculate the commission fee based on the default config settings.
+It also handles the additional logics for weekly private transactions commission by segregating the transaction list by
+corresponding user type.
+To process private transactions `WithdrawCommission` needs to convert currencies to EUR.
+`CurrencyConverter` and `ExchangeRate` classes are used to convert to desired currency.
+~~~php
+  $withdrawCommissions = (new WithdrawCommission())
+            ->setTransactions($withdraws)
+            ->calculate();
+~~~
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### ExchangeRate
+This class is responsible for providing the latest list of exchange rate from EUR to other currencies.
+~~~php
+$exchangeRates = (new ExchangeRate)->getExchangeRates();
+~~~
 
-## Security Vulnerabilities
-
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### CurrencyConverter
+This class converts one currency amount into different currency from the list given from `ExchangeRate`.
+~~~php
+$convertedCurrency = (new CurrencyConverter())->convertCurrency(10, 'EUR', 'JPY');
+~~~
+>**_NOTE :_** The Japanese Yen does not use a decimal point. The yen is the lowest value possible in Japanese currency.

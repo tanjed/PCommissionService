@@ -3,8 +3,6 @@
 namespace App\Console\Commands;
 
 use App\Modules\CommissionCalculator;
-use App\Services\Commission\DepositCommission;
-use App\Services\Converter\CurrencyConverter;
 use App\Services\Parser\CSVParser;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Log;
