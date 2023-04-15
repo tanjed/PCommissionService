@@ -3,14 +3,14 @@
 return [
     'rules' => [
         'deposit' => [
-            'default' => 0.03,
+            'default' => env('DEFAULT_DEPOSIT_COMMISSION', 0.03),
         ],
         'withdraw' => [
-            'default' => 0.3,
-            'business' => 0.5,
+            'default' => env('DEFAULT_WITHDRAW_COMMISSION', 0.3),
+            'business' => env('BUSINESS_WITHDRAW_COMMISSION', 0.5),
             'weekly_discount' => [
-                'maximum_free_withdraw' => 3,
-                'maximum_free_amount' => 1000
+                'maximum_free_withdraw' => env('MAXIMUM_FREE_WITHDRAW_TRANSACTIONS', 3),
+                'maximum_free_amount' => env('MAXIMUM_FREE_WITHDRAW_AMOUNT', 1000)
             ],
         ]
     ],
@@ -31,8 +31,8 @@ return [
         'withdraw',
     ],
     'date_format' => 'Y-m-d',
-    'currency_exchange_base_url' => 'https://developers.paysera.com/tasks/api/currency-exchange-rates',
-    'base_currency' => 'EUR',
+    'currency_exchange_base_url' => env('CURRENCY_EXCHANGE_BASE_URL'),
+    'base_currency' => env('BASE_CURRENCY', 'EUR'),
     'non_decimal_currencies' => [
         'JPY' => 'JAPANESE YEN'
     ]

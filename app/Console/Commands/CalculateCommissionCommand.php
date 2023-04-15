@@ -50,6 +50,8 @@ class CalculateCommissionCommand extends Command
             $this->commissionCalculator
                 ->setTransactions($transactions)
                 ->calculate();
+
+            $this->commissionCalculator->showOutput();
         }
         catch (\Exception $exception) {
             Log::error($exception);

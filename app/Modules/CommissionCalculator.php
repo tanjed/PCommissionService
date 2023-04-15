@@ -34,7 +34,7 @@ class CommissionCalculator implements CommissionCalculatorInterface
         return $this;
     }
 
-    public function calculate()
+    public function calculate() : array
     {
         $totalTransactions = count($this->transactions);
         $this->segregateOperationTypes();
@@ -56,6 +56,14 @@ class CommissionCalculator implements CommissionCalculatorInterface
                 $commission = $this->getRoundedDecimal($depositCommissions[$i]);
 
             $this->output[$i] = $commission;
+        }
+
+        return $this->output;
+    }
+
+    public function showOutput()
+    {
+        foreach ($this->output as $commission) {
             echo $commission;
             echo PHP_EOL;
         }

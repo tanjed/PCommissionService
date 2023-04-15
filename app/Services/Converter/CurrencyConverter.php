@@ -2,35 +2,30 @@
 
 namespace App\Services\Converter;
 
+use App\Modules\ExchangeRate;
+
 class CurrencyConverter
 {
     private $rates = [], $defaultCurrency;
 
-    public function __construct()
+    public function __construct(ExchangeRate $exchangeRateDetector)
     {
         $this->defaultCurrency = config('commission.base_currency');
-        $list = $this->getCurrencyList();
-        if (isset($list['rates'])) $this->rates = $list['rates'];
-    }
-
-    private function getCurrencyList()
-    {
-       return json_decode(file_get_contents(config('commission.currency_exchange_base_url')), true);
+        $this->rates = $exchangeRateDetector->getExchangeRates();
     }
 
     private function getExchangeRate($toCurrency)
     {
         $toCurrency = strtoupper($toCurrency);
-        if (isset($this->rates[$toCurrency])) return $this->rates[$toCurrency];
-        return null;
+        return $this->rates[$toCurrency] ?? null;
     }
 
-    public function convertCurrency($amount, $fromCurrency, $toCurrency)
+    public function convertCurrency($amount, $fromCurrency, $toCurrency) : float
     {
         if ($fromCurrency == $toCurrency)
-           return $amount;
+            return $amount;
         elseif ($toCurrency == $this->defaultCurrency)
-           return $amount / $this->getExchangeRate($fromCurrency);
+            return $amount / $this->getExchangeRate($fromCurrency);
         elseif ($fromCurrency == $this->defaultCurrency)
             return $amount * $this->getExchangeRate($toCurrency);
         else

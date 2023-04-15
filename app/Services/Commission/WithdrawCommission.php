@@ -9,6 +9,11 @@ use Carbon\Carbon;
 
 class WithdrawCommission extends AbstractCommissionCalculator
 {
+    private $currencyConverter;
+    public function __construct(CurrencyConverter $currencyConverter)
+    {
+        $this->currencyConverter = $currencyConverter;
+    }
 
     public function calculate()
     {
@@ -31,7 +36,6 @@ class WithdrawCommission extends AbstractCommissionCalculator
     private function calculatePrivateTransactionsCommission() : void
     {
         $baseCurrency = config('commission.base_currency');
-        $currencyConverter = new CurrencyConverter();
         $maximumFreeWithdraw = config('commission.rules.withdraw.weekly_discount.maximum_free_withdraw');
         $maximumFreeAmount = config('commission.rules.withdraw.weekly_discount.maximum_free_amount');
         $commissionRate = $this->getCommissionRate(CommissionCalculator::OPERATION_TYPE_WITHDRAW, CommissionCalculator::USER_TYPE_PRIVATE);
@@ -45,14 +49,14 @@ class WithdrawCommission extends AbstractCommissionCalculator
                foreach ($transactions as $transaction) {
                    $commission = 0.00;
                    $transactionsThisWeek++;
-                   $weeklyTransactionAmountInBaseCurrency += $currencyConverter->convertCurrency($transaction['amount'], $transaction['currency'], $baseCurrency);
+                   $weeklyTransactionAmountInBaseCurrency += $this->currencyConverter->convertCurrency($transaction['amount'], $transaction['currency'], $baseCurrency);
                    if ($weeklyTransactionAmountInBaseCurrency > $maximumFreeAmount) {
                        $commission = $this->getPercentage(($weeklyTransactionAmountInBaseCurrency - $maximumFreeAmount), $commissionRate);
                        $weeklyTransactionAmountInBaseCurrency = $maximumFreeAmount;
                    } elseif ($transactionsThisWeek > $maximumFreeWithdraw) {
                        $commission = $this->getPercentage($weeklyTransactionAmountInBaseCurrency, $commissionRate);
                    }
-                   $commission = $currencyConverter->convertCurrency($commission, $baseCurrency, $transaction['currency']);
+                   $commission = $this->currencyConverter->convertCurrency($commission, $baseCurrency, $transaction['currency']);
                    $this->output[$transaction['index']] = $this->mapCommissionOutput($commission, $transaction);
                }
             }
